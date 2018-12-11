@@ -2,9 +2,86 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title></title>
+    <title>Image Analyzer</title>
+    <script type="text/javascript">
+        var result = document.getElementById("i_original");
+        var file = document.getElementById("f_choose");
+        if (typeof FileReader == 'undefined') {
+            result.InnerHTML = "<p>你的浏览器不支持FileReader接口！</p>";
+            file.setAttribute("disabled", "disabled");
+        }
+        function readAsDataURL() {
+            var file = document.getElementById("f_choose").files[0];
+            var reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (e) {
+                var result = document.getElementById("i_original");
+                result.innerHTML = '<img src="' + this.result + '" alt="" />';
+            }
+        }
+        function readAsBinaryString() {
+            var file = document.getElementById("f_choose").files[0];
+            var reader = new FileReader();
+            reader.readAsBinaryString(file);
+            reader.onload = function (e) {
+                var string = reader.result.split("");
+                var hex = ""
+                for (var i = 0; i < string.length; i++) {
+                    var charhex = string[i].charCodeAt();
+                    var hex0 = parseInt(charhex / 16);
+                    var hex1 = parseInt(charhex % 16);
+                    switch (hex0) {
+                        case 0: hex0 = '0'; break;
+                        case 1: hex0 = '1'; break;
+                        case 2: hex0 = '2'; break;
+                        case 3: hex0 = '3'; break;
+                        case 4: hex0 = '4'; break;
+                        case 5: hex0 = '5'; break;
+                        case 6: hex0 = '6'; break;
+                        case 7: hex0 = '7'; break;
+                        case 8: hex0 = '8'; break;
+                        case 9: hex0 = '9'; break;
+                        case 10: hex0 = 'A'; break;
+                        case 11: hex0 = 'B'; break;
+                        case 12: hex0 = 'C'; break;
+                        case 13: hex0 = 'D'; break;
+                        case 14: hex0 = 'E'; break;
+                        case 15: hex0 = 'F'; break;
+                    }
+                    switch (hex1) {
+                        case 0: hex1 = '0'; break;
+                        case 1: hex1 = '1'; break;
+                        case 2: hex1 = '2'; break;
+                        case 3: hex1 = '3'; break;
+                        case 4: hex1 = '4'; break;
+                        case 5: hex1 = '5'; break;
+                        case 6: hex1 = '6'; break;
+                        case 7: hex1 = '7'; break;
+                        case 8: hex1 = '8'; break;
+                        case 9: hex1 = '9'; break;
+                        case 10: hex1 = 'A'; break;
+                        case 11: hex1 = 'B'; break;
+                        case 12: hex1 = 'C'; break;
+                        case 13: hex1 = 'D'; break;
+                        case 14: hex1 = 'E'; break;
+                        case 15: hex1 = 'F'; break;
+                    }
+                    hex = hex + hex0 + hex1;
+                }
+                var result = document.getElementById("i_binary");
+                result.innerHTML = hex;
+            }
+        }
+    </script>
 </head>
 <body>
-
+    <p>
+        <label>请选择一个文件：</label>
+        <input type="file" id="f_choose" accept="image/bmp" />
+        <input type="button" id="b_load" value="读取图像" onclick="readAsDataURL()" />
+        <input type="button" value="读取二进制数据" onclick="readAsBinaryString()" />
+    </p>
+    <div id="i_original"></div>
+    <div id="i_binary" style="margin: 10px; align-content: center; width: 90%; display: block; word-break: break-all; word-wrap: break-word;"></div>
 </body>
 </html>
