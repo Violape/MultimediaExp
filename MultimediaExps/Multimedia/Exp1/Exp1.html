@@ -89,7 +89,7 @@
                         case 15: hex1 = 'F'; break;
                     }
                     hex = hex + hex0 + hex1 + " ";
-                    hexstream = hexstream + hex0 + hex1;
+                    hexstream = hexstream + hex0 + hex1 + " ";
                     if (i % 16 == 15)
                         hex = hex + "<br/>";
                 }
@@ -99,10 +99,15 @@
             }
         }
         function analyzehexcode() {
-            var stream = hexstream.split("");
+            var stream = hexstream.split(" ");
             var tbody = document.getElementById('tb_init');
             tbody.remove();
-            writerow("图像类型", "42 4D", "BMP");
+            var code = "";
+            var val = new Array();
+            code = stream[0] + " " + stream[1];
+            if (code == "42 4D")
+                val.push("BMP");
+            writerow("图像类型", code, val[0]);
         }
         function writerow(attribute, stream, value) {
             var tbody = document.getElementById('tb_info');
@@ -122,7 +127,7 @@
 </head>
 <body>
     <p>
-        <label>请选择一个文件：</label>
+        <label>请选择一个文件（建议上传正方形图片）：</label>
         <input type="file" id="f_choose" accept="image/bmp" />
         <input type="button" id="b_load" value="读取图像" onclick="readAsDataURL()" />
         <input type="button" id="b_binary" value="读取二进制数据" onclick="readAsBinaryString()" disabled="disabled" />
