@@ -108,6 +108,60 @@
             if (code == "42 4D")
                 val.push("BMP");
             writerow("图像类型", code, val[0]);
+            code = stream[2] + " " + stream[3] + " " + stream[4] + " " + stream[5];
+            val.push(parseInt(stream[2], 16) + parseInt(stream[3], 16) * 256 + parseInt(stream[4], 16) * 65536 + parseInt(stream[5], 16) * 16777216);
+            writerow("文件长度", code, val[1]);
+            code = stream[6] + " " + stream[7] + " " + stream[8] + " " + stream[9];
+            if (code == "00 00 00 00")
+                val.push("-");
+            writerow("保留字", code, val[2]);
+            code = stream[10] + " " + stream[11] + " " + stream[12] + " " + stream[13];
+            val.push(parseInt(stream[10], 16) + parseInt(stream[11], 16) * 256 + parseInt(stream[12], 16) * 65536 + parseInt(stream[13], 16) * 16777216);
+            writerow("文件头大小", code, val[3]);
+            code = stream[14] + " " + stream[15] + " " + stream[16] + " " + stream[17];
+            val.push(parseInt(stream[14], 16) + parseInt(stream[15], 16) * 256 + parseInt(stream[16], 16) * 65536 + parseInt(stream[17], 16) * 16777216);
+            writerow("偏移量大小", code, val[4]);
+            code = stream[18] + " " + stream[19] + " " + stream[20] + " " + stream[21];
+            val.push(parseInt(stream[18], 16) + parseInt(stream[19], 16) * 256 + parseInt(stream[20], 16) * 65536 + parseInt(stream[21], 16) * 16777216);
+            writerow("图片宽度", code, val[5]);
+            code = stream[22] + " " + stream[23] + " " + stream[24] + " " + stream[25];
+            val.push(parseInt(stream[22], 16) + parseInt(stream[23], 16) * 256 + parseInt(stream[24], 16) * 65536 + parseInt(stream[25], 16) * 16777216);
+            writerow("图片高度", code, val[6]);
+            code = stream[26] + " " + stream[27];
+            val.push(parseInt(stream[26], 16) + parseInt(stream[27], 16) * 16);
+            writerow("位图位面数", code, val[7]);
+            code = stream[28] + " " + stream[29];
+            val.push(parseInt(stream[28], 16) + parseInt(stream[29], 16) * 16);
+            switch (val[8]) {
+                case 24:
+                    writerow("图片位数", code, "24位位图");
+                    code = stream[30] + " " + stream[31] + " " + stream[32] + " " + stream[33];
+                    if (code == "00 00 00 00")
+                        val.push("未压缩");
+                    writerow("压缩方式", code, val[9]);
+                    code = stream[34] + " " + stream[35] + " " + stream[36] + " " + stream[37];
+                    val.push(parseInt(stream[34], 16) + parseInt(stream[35], 16) * 256 + parseInt(stream[36], 16) * 65536 + parseInt(stream[37], 16) * 16777216);
+                    writerow("位图数据大小", code, val[10]);
+                    code = stream[38] + " " + stream[39] + " " + stream[40] + " " + stream[41];
+                    val.push(parseInt(stream[38], 16) + parseInt(stream[39], 16) * 256 + parseInt(stream[40], 16) * 65536 + parseInt(stream[41], 16) * 16777216);
+                    writerow("水平分辨率", code, val[11]);
+                    code = stream[42] + " " + stream[43] + " " + stream[44] + " " + stream[46];
+                    val.push(parseInt(stream[42], 16) + parseInt(stream[43], 16) * 256 + parseInt(stream[44], 16) * 65536 + parseInt(stream[45], 16) * 16777216);
+                    writerow("垂直分辨率", code, val[12]);
+                    code = stream[46] + " " + stream[47] + " " + stream[48] + " " + stream[49];
+                    val.push(parseInt(stream[46], 16) + parseInt(stream[47], 16) * 256 + parseInt(stream[48], 16) * 65536 + parseInt(stream[49], 16) * 16777216);
+                    if (val[13] == 0)
+                        writerow("颜色索引数", code, "不设索引");
+                    else
+                        writerow("颜色索引数", code, val[13]);
+                    code = stream[50] + " " + stream[51] + " " + stream[52] + " " + stream[53];
+                    val.push(parseInt(stream[50], 16) + parseInt(stream[51], 16) * 256 + parseInt(stream[52], 16) * 65536 + parseInt(stream[53], 16) * 16777216);
+                    if (val[14] == 0)
+                        writerow("颜色索引数", code, "同等重要");
+                    else
+                        writerow("重要颜色索引数", code, val[14]);
+                    break;
+            }
         }
         function writerow(attribute, stream, value) {
             var tbody = document.getElementById('tb_info');
