@@ -27,6 +27,8 @@
         var result = document.getElementById("i_original");
         var file = document.getElementById("f_choose");
         var hexstream = "";
+        var stream = new Array();
+        var val = new Array();
         if (typeof FileReader == 'undefined') {
             result.InnerHTML = "<p>你的浏览器不支持FileReader接口！</p>";
             file.setAttribute("disabled", "disabled");
@@ -99,11 +101,11 @@
             }
         }
         function analyzehexcode() {
-            var stream = hexstream.split(" ");
+            stream = hexstream.split(" ");
             var tbody = document.getElementById('tb_init');
-            tbody.remove();
+            if (tbody != null)
+                tbody.remove();
             var code = "";
-            var val = new Array();
             code = stream[0] + " " + stream[1];
             if (code == "42 4D")
                 val.push("BMP");
@@ -132,36 +134,64 @@
             writerow("位图位面数", code, val[7]);
             code = stream[28] + " " + stream[29];
             val.push(parseInt(stream[28], 16) + parseInt(stream[29], 16) * 16);
-            switch (val[8]) {
-                case 24:
-                    writerow("图片位数", code, "24位位图");
-                    code = stream[30] + " " + stream[31] + " " + stream[32] + " " + stream[33];
-                    if (code == "00 00 00 00")
-                        val.push("未压缩");
-                    writerow("压缩方式", code, val[9]);
-                    code = stream[34] + " " + stream[35] + " " + stream[36] + " " + stream[37];
-                    val.push(parseInt(stream[34], 16) + parseInt(stream[35], 16) * 256 + parseInt(stream[36], 16) * 65536 + parseInt(stream[37], 16) * 16777216);
-                    writerow("位图数据大小", code, val[10]);
-                    code = stream[38] + " " + stream[39] + " " + stream[40] + " " + stream[41];
-                    val.push(parseInt(stream[38], 16) + parseInt(stream[39], 16) * 256 + parseInt(stream[40], 16) * 65536 + parseInt(stream[41], 16) * 16777216);
-                    writerow("水平分辨率", code, val[11]);
-                    code = stream[42] + " " + stream[43] + " " + stream[44] + " " + stream[46];
-                    val.push(parseInt(stream[42], 16) + parseInt(stream[43], 16) * 256 + parseInt(stream[44], 16) * 65536 + parseInt(stream[45], 16) * 16777216);
-                    writerow("垂直分辨率", code, val[12]);
-                    code = stream[46] + " " + stream[47] + " " + stream[48] + " " + stream[49];
-                    val.push(parseInt(stream[46], 16) + parseInt(stream[47], 16) * 256 + parseInt(stream[48], 16) * 65536 + parseInt(stream[49], 16) * 16777216);
-                    if (val[13] == 0)
-                        writerow("颜色索引数", code, "不设索引");
-                    else
-                        writerow("颜色索引数", code, val[13]);
-                    code = stream[50] + " " + stream[51] + " " + stream[52] + " " + stream[53];
-                    val.push(parseInt(stream[50], 16) + parseInt(stream[51], 16) * 256 + parseInt(stream[52], 16) * 65536 + parseInt(stream[53], 16) * 16777216);
-                    if (val[14] == 0)
-                        writerow("颜色索引数", code, "同等重要");
-                    else
-                        writerow("重要颜色索引数", code, val[14]);
-                    break;
+            if (val[8] == 1)
+                writerow("图片位数", code, "1位");
+            else if (val[8] == 8)
+                writerow("图片位数", code, "8位");
+            else if (val[8] == 24)
+                writerow("图片位数", code, "24位");
+            else
+                writerow("图片位数", code, "undefined");
+            code = stream[30] + " " + stream[31] + " " + stream[32] + " " + stream[33];
+            if (code == "00 00 00 00")
+                val.push("未压缩");
+            writerow("压缩方式", code, val[9]);
+            code = stream[34] + " " + stream[35] + " " + stream[36] + " " + stream[37];
+            val.push(parseInt(stream[34], 16) + parseInt(stream[35], 16) * 256 + parseInt(stream[36], 16) * 65536 + parseInt(stream[37], 16) * 16777216);
+            writerow("位图数据大小", code, val[10]);
+            code = stream[38] + " " + stream[39] + " " + stream[40] + " " + stream[41];
+            val.push(parseInt(stream[38], 16) + parseInt(stream[39], 16) * 256 + parseInt(stream[40], 16) * 65536 + parseInt(stream[41], 16) * 16777216);
+            writerow("水平分辨率", code, val[11]);
+            code = stream[42] + " " + stream[43] + " " + stream[44] + " " + stream[46];
+            val.push(parseInt(stream[42], 16) + parseInt(stream[43], 16) * 256 + parseInt(stream[44], 16) * 65536 + parseInt(stream[45], 16) * 16777216);
+            writerow("垂直分辨率", code, val[12]);
+            code = stream[46] + " " + stream[47] + " " + stream[48] + " " + stream[49];
+            val.push(parseInt(stream[46], 16) + parseInt(stream[47], 16) * 256 + parseInt(stream[48], 16) * 65536 + parseInt(stream[49], 16) * 16777216);
+            if (val[13] == 0)
+                writerow("颜色索引数", code, "不设索引");
+            else
+                writerow("颜色索引数", code, val[13]);
+            code = stream[50] + " " + stream[51] + " " + stream[52] + " " + stream[53];
+            val.push(parseInt(stream[50], 16) + parseInt(stream[51], 16) * 256 + parseInt(stream[52], 16) * 65536 + parseInt(stream[53], 16) * 16777216);
+            if (val[14] == 0)
+                writerow("颜色索引数", code, "同等重要");
+            else
+                writerow("重要颜色索引数", code, val[14]);
+            if (val[3] - 54 >= 8) {
+                code = stream[54] + stream[55] + stream[56] + stream[57] + " ";
+                code = code + stream[58] + stream[59] + stream[60] + stream[61] + " ...";
+                writerow("调色板", code, "显示调色板内的颜色序列");
             }
+            if (val[8] == 1) {
+                code = stream[val[3]] + stream[val[3] + 1] + stream[val[3] + 2] + stream[val[3] + 3] + " ";
+                code = code + stream[val[3] + 4] + stream[val[3] + 5] + stream[val[3] + 6] + stream[val[3] + 7] + " ...";
+            }
+            else if (val[8] == 8) {
+                code = stream[val[3]] + " " + stream[val[3] + 1] + " " + stream[val[3] + 2] + " " + stream[val[3] + 3] + " ";
+                code = code + stream[val[3] + 4] + " " + stream[val[3] + 5] + " " + stream[val[3] + 6] + " " + stream[val[3] + 7] + " ...";
+            }
+            else if (val[8] == 24) {
+                code = stream[val[3]] + stream[val[3] + 1] + stream[val[3] + 2] + " ";
+                code = code + stream[val[3] + 3] + stream[val[3] + 4] + stream[val[3] + 5] + " ...";
+            }
+            else {
+                code = stream[val[3]] + " ...";
+            }
+            writerow("颜色阵列", code, "从左下到右上的序列");
+            writerow("<input type=\"button\" id=\"b_maxtogs\" value=\"最大值法转为灰度图\" onclick=\"truetogsmax()\"/>",
+                "<input type=\"button\" id=\"b_avgtogs\" value=\"平均值法转为灰度图\" onclick=\"truetogsavg()\"/>",
+                "<input type=\"button\" id=\"b_avgwtogs\" value=\"加权法转为灰度图\" onclick=\"truetogsavgw()\"/>");
+            delete val;
         }
         function writerow(attribute, stream, value) {
             var tbody = document.getElementById('tb_info');
@@ -176,6 +206,60 @@
             val.innerHTML = value;
             row.appendChild(val);
             tbody.appendChild(row);
+        }
+        function makehead() {
+            var solstream = stream.slice(0, 54);
+            solstream[10] = "36";
+            solstream[11] = "04";
+            solstream[28] = "08";
+            var bitmapsize = parseInt(val[5] * val[6]) + 2;
+            solstream[34] = parseInt(bitmapsize % 256).toString(16);
+            solstream[35] = parseInt(bitmapsize % 65536 / 256).toString(16);
+            solstream[36] = parseInt(bitmapsize % 16777216 / 65536).toString(16);
+            solstream[37] = parseInt(bitmapsize / 16777216).toString(16);
+            if (solstream[34].length == 1)
+                solstream[34] = "0" + solstream[34];
+            if (solstream[35].length == 1)
+                solstream[35] = "0" + solstream[35];
+            if (solstream[36].length == 1)
+                solstream[36] = "0" + solstream[36];
+            if (solstream[37].length == 1)
+                solstream[37] = "0" + solstream[37];
+            var totalsize = 1078 + bitmapsize;
+            solstream[2] = parseInt(totalsize % 256).toString(16);
+            solstream[3] = parseInt(totalsize % 65536 / 256).toString(16);
+            solstream[4] = parseInt(totalsize % 16777216 / 65536).toString(16);
+            solstream[5] = parseInt(totalsize / 16777216).toString(16);
+            if (solstream[2].length == 1)
+                solstream[2] = "0" + solstream[2];
+            if (solstream[3].length == 1)
+                solstream[3] = "0" + solstream[3];
+            if (solstream[4].length == 1)
+                solstream[4] = "0" + solstream[4];
+            if (solstream[5].length == 1)
+                solstream[5] = "0" + solstream[5];
+            for (var i = 0; i < 256; i++) {
+                var curr = i.toString(16);
+                if (curr.length == 1)
+                    curr = "0" + curr;
+                solstream.push(curr);
+                solstream.push(curr);
+                solstream.push(curr);
+                solstream.push("00");
+            }
+            return solstream;
+        }
+        function truetogsmax() {
+            var solstream = makehead();
+            ;
+        }
+        function truetogsavg() {
+            var solstream = makehead();
+            ;
+        }
+        function truetogsavgw() {
+            var solstream = makehead();
+            ;
         }
     </script>
 </head>
