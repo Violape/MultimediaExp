@@ -3,6 +3,26 @@
 <head>
     <meta charset="utf-8" />
     <title>Image Analyzer</title>
+    <style>
+        .binary {
+            margin: 10px;
+            padding: 5px;
+            align-content: center;
+            width: 40%;
+            display: block;
+            word-break: break-all;
+            word-wrap: break-word;
+            font: 16px consolas;
+            display: inline-block;
+            vertical-align: top;
+            border: 2px solid;
+        }
+        .title {
+            font: 20px 宋体;
+            padding-left: 10px;
+            padding-top: 5px;
+        }
+    </style>
     <script type="text/javascript">
         var result = document.getElementById("i_original");
         var file = document.getElementById("f_choose");
@@ -15,8 +35,9 @@
             var reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function (e) {
-                var result = document.getElementById("i_original");
-                result.innerHTML = '<img src="' + this.result + '" alt="" />';
+                var result = document.getElementById("t_original");
+                result.innerHTML = '<img src="' + this.result + '" alt=""/>';
+                document.getElementById("b_binary").disabled = false;
             }
         }
         function readAsBinaryString() {
@@ -66,9 +87,11 @@
                         case 14: hex1 = 'E'; break;
                         case 15: hex1 = 'F'; break;
                     }
-                    hex = hex + hex0 + hex1;
+                    hex = hex + hex0 + hex1 + " ";
+                    if (i % 16 == 15)
+                        hex = hex + "<br/>";
                 }
-                var result = document.getElementById("i_binary");
+                var result = document.getElementById("t_binary");
                 result.innerHTML = hex;
             }
         }
@@ -79,9 +102,19 @@
         <label>请选择一个文件：</label>
         <input type="file" id="f_choose" accept="image/bmp" />
         <input type="button" id="b_load" value="读取图像" onclick="readAsDataURL()" />
-        <input type="button" value="读取二进制数据" onclick="readAsBinaryString()" />
+        <input type="button" id="b_binary" value="读取二进制数据" onclick="readAsBinaryString()" disabled="disabled" />
     </p>
-    <div id="i_original"></div>
-    <div id="i_binary" style="margin: 10px; align-content: center; width: 90%; display: block; word-break: break-all; word-wrap: break-word;"></div>
+    <div id="i_original" style="margin-left:10px; padding: 10px; width:82%; border:2px solid;">
+        <div id="t_showoriginal" class="title">原图展示</div><br />
+        <div id="t_original" align="center"></div>
+    </div>
+    <div id="i_binary" class="binary">
+        <div id="t_showbinary" class="title">十六进制编码</div>
+        <div id="t_binary" style="padding-left: 50px; padding-top:10px; padding-bottom:10px;"></div>
+    </div>
+    <div id="i_information" class="binary">
+        <div id="t_showinfo" class="title">图片信息</div>
+        <div id="t_info" style="padding-left: 50px; padding-top:10px; padding-bottom:10px;"></div>
+    </div>
 </body>
 </html>
