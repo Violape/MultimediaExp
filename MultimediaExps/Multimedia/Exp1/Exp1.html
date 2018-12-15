@@ -215,6 +215,19 @@
             }
             return solstream;
         }
+        function fakeClick(obj) {
+            var ev = document.createEvent("MouseEvents");
+            ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            obj.dispatchEvent(ev);
+        }
+        function exportRaw(name, data) {
+            var urlObject = window.URL || window.webkitURL || window;
+            var export_blob = new Blob([data]);
+            var save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a")
+            save_link.href = urlObject.createObjectURL(export_blob);
+            save_link.download = name;
+            fakeClick(save_link);
+        }
         function truetogsmax() {
             var solstream = makehead();
             for (var i = val[3]; i < val[1] - 2; i += 3) {
@@ -239,16 +252,48 @@
                     bit = "0" + bit;
                 solstream.push(bit);
             }
-            solstream.join("");
-
+            solstream.push("00");
+            solstream.push("00");
+            var outstream = "";
+            for (var i = 0; i < solstream.length; i++)
+                outstream = outstream + parseInt(solstream[i], 16) + ",";
+            exportRaw("numsetmax.txt", outstream);
         }
         function truetogsavg() {
             var solstream = makehead();
-            ;
+            for (var i = val[3]; i < val[1] - 2; i += 3) {
+                var bluvec = parseInt(stream[i], 16);
+                var grevec = parseInt(stream[i + 1], 16);
+                var redvec = parseInt(stream[i + 2], 16);
+                var bit = parseInt((bluvec + grevec + redvec) / 3).toString(16);
+                if (bit.length == 1)
+                    bit = "0" + bit;
+                solstream.push(bit);
+            }
+            solstream.push("00");
+            solstream.push("00");
+            var outstream = "";
+            for (var i = 0; i < solstream.length; i++)
+                outstream = outstream + parseInt(solstream[i], 16) + ",";
+            exportRaw("numsetavg.txt", outstream);
         }
         function truetogsavgw() {
             var solstream = makehead();
-            ;
+            for (var i = val[3]; i < val[1] - 2; i += 3) {
+                var bluvec = parseInt(stream[i], 16);
+                var grevec = parseInt(stream[i + 1], 16);
+                var redvec = parseInt(stream[i + 2], 16);
+                var bit = parseInt(bluvec * 0.3 + grevec * 0.59 + redvec * 0.11).toString(16);
+                if (bit.length == 1)
+                    bit = "0" + bit;
+                solstream.push(bit);
+            }
+            solstream.push("00");
+            solstream.push("00");
+            var outstream = "";
+            for (var i = 0; i < solstream.length; i++)
+                outstream = outstream + parseInt(solstream[i], 16) + ",";
+            exportRaw("numsetavgw.txt", outstream);
         }
     </script>
 </head>
