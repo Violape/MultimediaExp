@@ -52,46 +52,11 @@
                 var hex = ""
                 for (var i = 0; i < string.length; i++) {
                     var charhex = string[i].charCodeAt();
-                    var hex0 = parseInt(charhex / 16);
-                    var hex1 = parseInt(charhex % 16);
-                    switch (hex0) {
-                        case 0: hex0 = '0'; break;
-                        case 1: hex0 = '1'; break;
-                        case 2: hex0 = '2'; break;
-                        case 3: hex0 = '3'; break;
-                        case 4: hex0 = '4'; break;
-                        case 5: hex0 = '5'; break;
-                        case 6: hex0 = '6'; break;
-                        case 7: hex0 = '7'; break;
-                        case 8: hex0 = '8'; break;
-                        case 9: hex0 = '9'; break;
-                        case 10: hex0 = 'A'; break;
-                        case 11: hex0 = 'B'; break;
-                        case 12: hex0 = 'C'; break;
-                        case 13: hex0 = 'D'; break;
-                        case 14: hex0 = 'E'; break;
-                        case 15: hex0 = 'F'; break;
-                    }
-                    switch (hex1) {
-                        case 0: hex1 = '0'; break;
-                        case 1: hex1 = '1'; break;
-                        case 2: hex1 = '2'; break;
-                        case 3: hex1 = '3'; break;
-                        case 4: hex1 = '4'; break;
-                        case 5: hex1 = '5'; break;
-                        case 6: hex1 = '6'; break;
-                        case 7: hex1 = '7'; break;
-                        case 8: hex1 = '8'; break;
-                        case 9: hex1 = '9'; break;
-                        case 10: hex1 = 'A'; break;
-                        case 11: hex1 = 'B'; break;
-                        case 12: hex1 = 'C'; break;
-                        case 13: hex1 = 'D'; break;
-                        case 14: hex1 = 'E'; break;
-                        case 15: hex1 = 'F'; break;
-                    }
-                    hex = hex + hex0 + hex1 + " ";
-                    hexstream = hexstream + hex0 + hex1 + " ";
+                    var hexc = parseInt(charhex).toString(16);
+                    if (hexc.length == 1)
+                        hexc = "0" + hexc;
+                    hex = hex + hexc + " ";
+                    hexstream = hexstream + hexc + " ";
                     if (i % 16 == 15)
                         hex = hex + "<br/>";
                 }
@@ -107,7 +72,7 @@
                 tbody.remove();
             var code = "";
             code = stream[0] + " " + stream[1];
-            if (code == "42 4D")
+            if (code == "42 4d")
                 val.push("BMP");
             writerow("图像类型", code, val[0]);
             code = stream[2] + " " + stream[3] + " " + stream[4] + " " + stream[5];
@@ -188,9 +153,10 @@
                 code = stream[val[3]] + " ...";
             }
             writerow("颜色阵列", code, "从左下到右上的序列");
-            writerow("<input type=\"button\" id=\"b_maxtogs\" value=\"最大值法转为灰度图\" onclick=\"truetogsmax()\"/>",
-                "<input type=\"button\" id=\"b_avgtogs\" value=\"平均值法转为灰度图\" onclick=\"truetogsavg()\"/>",
-                "<input type=\"button\" id=\"b_avgwtogs\" value=\"加权法转为灰度图\" onclick=\"truetogsavgw()\"/>");
+            if (val[8] == 24)
+                writerow("<input type=\"button\" id=\"b_maxtogs\" value=\"最大值法转为灰度图\" onclick=\"truetogsmax()\"/>",
+                    "<input type=\"button\" id=\"b_avgtogs\" value=\"平均值法转为灰度图\" onclick=\"truetogsavg()\"/>",
+                    "<input type=\"button\" id=\"b_avgwtogs\" value=\"加权法转为灰度图\" onclick=\"truetogsavgw()\"/>");
             delete val;
         }
         function writerow(attribute, stream, value) {
@@ -251,7 +217,30 @@
         }
         function truetogsmax() {
             var solstream = makehead();
-            ;
+            for (var i = val[3]; i < val[1] - 2; i += 3) {
+                var bluvec = parseInt(stream[i], 16);
+                var grevec = parseInt(stream[i + 1], 16);
+                var redvec = parseInt(stream[i + 2], 16);
+                var bit;
+                if (bluvec > grevec) {
+                    if (bluvec > redvec)
+                        bit = bluvec;
+                    else
+                        bit = redvec;
+                }
+                else {
+                    if (grevec > redvec)
+                        bit = grevec;
+                    else
+                        bit = redvec;
+                }
+                bit = bit.toString(16);
+                if (bit.length == 1)
+                    bit = "0" + bit;
+                solstream.push(bit);
+            }
+            solstream.join("");
+
         }
         function truetogsavg() {
             var solstream = makehead();
