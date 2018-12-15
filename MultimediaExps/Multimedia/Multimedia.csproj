@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Exp1\Exp1.html" />
+    <Content Include="Exp1\main.cpp" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
