@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>语音合成</title>
+    <style>
+        .Button {
+            color: black;
+            background-color: #9DD3FA;
+            width: 60px;
+            height: 40px;
+            text-align: center; /*文字居中*/
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 20%; /*圆角矩形*/
+            transition-duration: 0.4s; /*渐变动画*/
+        }
+            .Button:hover {
+                background-color: #1F6FB5;
+                color: white;
+                box-shadow: 0 9px #FAFFEB;
+            }
+            /*以下子类定义点击按钮时的样式，出现阴影，按钮下移后弹起*/
+            .Button:active {
+                box-shadow: 0 5px #FCD692;
+                transform: translateY(4px);
+            }
+        .Textbox {
+            height: 36px;
+            width: 300px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>语音合成器</h1>
+        <p>可通过输入文本合成语音</p>
+        <div>
+            <input type="text" class="Textbox" id="textarea" placeholder="输入文本..."/>
+            <input type="button" class="Button" id="read" value="朗读" onclick="readOutLoud()"/>
+        </div>
+    </div>
+    <script type="text/javascript">
+        try {
+            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            var recognition = new SpeechRecognition();
+        }
+        catch (e) {
+            alert("您的浏览器不支持Web Speech API，请使用Chrome浏览器或Firefox浏览器打开此应用。");
+        }
+        function readOutLoud() {
+            var message = document.getElementById("textarea").value;
+            var speech = new SpeechSynthesisUtterance();
+            speech.text = message;
+            speech.volume = 1;
+            speech.rate = 1;
+            speech.pitch = 1;
+            window.speechSynthesis.speak(speech);
+        }
+    </script>
+</body>
+</html>
