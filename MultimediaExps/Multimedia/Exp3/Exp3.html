@@ -143,95 +143,122 @@
                 [["01 0e", "图像标题"], ["01 0f", "厂商"], ["01 10", "机型"], ["01 12", "方向"],
                     ["01 1a", "水平分辨率"], ["01 1b", "垂直分辨率"], ["01 28", "分辨率单位"], ["01 31", "软件"],
                     ["01 32", "修改时间"], ["02 13", "YCbCr定位"], ["82 98", "版权"],
-                    ["87 69", "EXIF偏移量"], ["C4 A5", "PrintIM数据"]]
+                    ["87 69", "EXIF偏移量"], ["c4 a5", "PrintIM数据"],
+                    ["82 9a", "曝光时间"], ["82 9d", "光圈F值"], ["88 22", "曝光程序"], ["88 27", "感光度"],
+                    ["88 30", "感光度类型"], ["90 00", "EXIF版本"], ["90 03", "拍摄时间"], ["90 04", "数字化时间"],
+                    ["91 01", "成分构成"], ["91 02", "像素压缩率"], ["92 01", "快门速度"], ["92 02", "光圈"],
+                    ["92 03", "亮度"], ["92 04", "曝光补偿"], ["92 05", "最大光圈"], ["92 07", "测光模式"],
+                    ["92 08", "光源"], ["92 09", "闪光灯"], ["92 0a", "镜头焦距"], ["a0 00", "FlashPix版本"],
+                    ["a0 01", "色彩空间"], ["a0 02", "有效图像宽度"], ["a0 03", "有效图像高度"], ["a0 05", "IOP目录偏移量"],
+                    ["a2 0e", "焦平面水平分辨率"], ["a2 0f", "焦平面垂直分辨率"], ["a2 10", "焦平面分辨率单位"], ["a2 17", "传感器类型"],
+                    ["a3 00", "文件来源"], ["a3 01", "场景类型"], ["a4 01", "自定义处理"], ["a4 02", "曝光模式"],
+                    ["a4 03", "白平衡"], ["a4 05", "35mm等效焦距"], ["a4 06", "场景拍摄类型"], ["a4 0a", "锐度"],
+                    ["a4 0c", "主体距离范围"], ["a4 32", "镜头参数"], ["a4 33", "镜头生产商"], ["a4 34", "镜头型号"],
+                    ["a4 35", "镜头序列号"]]
             );
-            var tagno;
-            if (val[3] == "大段优先")
-                tagno = parseInt(stream[scnt] + stream[scnt + 1], 16);
-            else
-                tagno = parseInt(stream[scnt + 1] + stream[scnt], 16);
-            scnt -= -2;
-            for (var i = 0; i < tagno; i++) {
-                //获取数据类型
-                var mcode = stream[scnt] + " " + stream[scnt + 1];
-                var icode = stream[scnt + 1] + " " + stream[scnt];
+            var baseoffset = "";
+            while (baseoffset != "DONE") {
+                if (baseoffset != "") {
+                    scnt = offsetbase - -baseoffset;
+                    baseoffset = "DONE";
+                }
+                var tagno;
                 if (val[3] == "大段优先")
-                    code = mcode;
+                    tagno = parseInt(stream[scnt] + stream[scnt + 1], 16);
                 else
-                    code = icode;
+                    tagno = parseInt(stream[scnt + 1] + stream[scnt], 16);
                 scnt -= -2;
-                var attr = map.get(code);
-                //获取数据格式
-                var headtype = "";
-                if (val[3] == "大段优先")
-                    headtype = parseInt(stream[scnt] + stream[scnt + 1], 16);
-                else
-                    headtype = parseInt(stream[scnt + 1] + stream[scnt], 16);
-                scnt -= -2;
-                if (headtype == 2) { //ASCII码格式
-                    var length;
+                for (var i = 0; i < tagno; i++) {
+                    //获取数据类型
+                    var mcode = stream[scnt] + " " + stream[scnt + 1];
+                    var icode = stream[scnt + 1] + " " + stream[scnt];
                     if (val[3] == "大段优先")
-                        length = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                        code = mcode;
                     else
-                        length = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
-                    scnt -= -4;
-                    var offset;
+                        code = icode;
+                    scnt -= -2;
+                    var attr = map.get(code);
+                    //获取数据格式
+                    var headtype = "";
                     if (val[3] == "大段优先")
-                        offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                        headtype = parseInt(stream[scnt] + stream[scnt + 1], 16);
                     else
-                        offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
-                    scnt -= -4;
-                    var string = "", hexstring = "";
-                    var crlfflag = 0;
-                    for (var j = 0; j < length; j++) {
-                        if (crlfflag == 1) {
-                            string += "; ";
-                            crlfflag = 0;
-                        }
-                        var curstring = stream[offsetbase + offset + j];
-                        if (curstring != "00")
-                            string += String.fromCharCode(parseInt(curstring, 16));
+                        headtype = parseInt(stream[scnt + 1] + stream[scnt], 16);
+                    scnt -= -2;
+                    if (headtype == 2) { //ASCII码格式
+                        var length;
+                        if (val[3] == "大段优先")
+                            length = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
                         else
-                            crlfflag = 1;
-                        if (hexstring.length == 18)
-                            hexstring += "...";
-                        if (hexstring.length < 21)
-                            hexstring += curstring + " ";
+                            length = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                        scnt -= -4;
+                        var offset;
+                        if (val[3] == "大段优先")
+                            offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                        else
+                            offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                        scnt -= -4;
+                        var string = "", hexstring = "";
+                        for (var j = 0; j < length; j++) {
+                            var curstring = stream[offsetbase + offset + j];
+                            if (curstring != "00")
+                                string += String.fromCharCode(parseInt(curstring, 16));
+                            if (hexstring.length == 24)
+                                hexstring += "...";
+                            if (hexstring.length < 27)
+                                hexstring += curstring + " ";
+                        }
+                        writerow(attr, hexstring, string);
                     }
-                    writerow(attr, hexstring, string);
-                }
-                if (headtype == 3 || headtype == 4) { // 数值格式（Short或者Long）
-                    scnt -= -4; //跳过1的长度提示
-                    var hexstring = "", string = "";
-                    if (val[3] == "大段优先") {
-                        hexstring = stream[scnt] + " " + stream[scnt + 1] + " " + stream[scnt + 2] + " " + stream[scnt + 3];
-                        string = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                    if (headtype == 3 || headtype == 4) { // 数值格式（Short或者Long）
+                        scnt -= -4; //跳过1的长度提示
+                        var hexstring = "", string = "";
+                        if (val[3] == "大段优先") {
+                            hexstring = stream[scnt] + " " + stream[scnt + 1] + " " + stream[scnt + 2] + " " + stream[scnt + 3];
+                            string = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                        }
+                        else {
+                            hexstring = stream[scnt + 3] + " " + stream[scnt + 2] + " " + stream[scnt + 1] + " " + stream[scnt];
+                            string = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                        }
+                        scnt -= -4;
+                        writerow(attr, hexstring, string);
+                        if (attr == "EXIF偏移量")
+                            baseoffset = string;
+                        if (attr == "IOP目录偏移量")
+                            ;//待补全
                     }
-                    else {
-                        hexstring = stream[scnt + 3] + " " + stream[scnt + 2] + " " + stream[scnt + 1] + " " + stream[scnt];
-                        string = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                    if (headtype == 5 || headtype == 10) { //Rational格式, SRational格式
+                        scnt -= -4; //跳过1的长度提示
+                        var offset;
+                        if (val[3] == "大段优先")
+                            offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                        else
+                            offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                        scnt -= -4;
+                        var hexstring = "", string = "";
+                        if (val[3] == "大段优先") {
+                            hexstring = stream[offsetbase + offset] + " " + stream[offsetbase + offset + 1] + " " + stream[offsetbase + offset + 2] + " " + stream[offsetbase + offset + 3] + " ";
+                            string = parseInt(stream[offsetbase + offset] + stream[offsetbase + offset + 1] + stream[offsetbase + offset + 2] + stream[offsetbase + offset + 3], 16);
+                        }
+                        else {
+                            hexstring = stream[offsetbase + offset + 3] + " " + stream[offsetbase + offset + 2] + " " + stream[offsetbase + offset + 1] + " " + stream[offsetbase + offset] + " ";
+                            string = parseInt(stream[offsetbase + offset + 3] + stream[offsetbase + offset + 2] + stream[offsetbase + offset + 1] + stream[offsetbase + offset], 16);
+                        }
+                        if (val[3] == "大段优先") {
+                            hexstring += stream[offsetbase + offset + 4] + " " + stream[offsetbase + offset + 5] + " " + stream[offsetbase + offset + 6] + " " + stream[offsetbase + offset + 7];
+                            string += "/" + parseInt(stream[offsetbase + offset + 4] + stream[offsetbase + offset + 5] + stream[offsetbase + offset + 6] + stream[offsetbase + offset + 7], 16);
+                        }
+                        else {
+                            hexstring += stream[offsetbase + offset + 7] + " " + stream[offsetbase + offset + 6] + " " + stream[offsetbase + offset + 5] + " " + stream[offsetbase + offset + 4];
+                            string += "/" + parseInt(stream[offsetbase + offset + 7] + stream[offsetbase + offset + 6] + stream[offsetbase + offset + 5] + stream[offsetbase + offset + 4], 16);
+                        }
+                        writerow(attr, hexstring, string);
                     }
-                    scnt -= -4;
-                    writerow(attr, hexstring, string);
-                }
-                if (headtype == 5) { //Rational格式
-                    scnt -= -4; //跳过1的长度提示
-                    var offset;
-                    if (val[3] == "大段优先")
-                        offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
-                    else
-                        offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
-                    scnt -= -4;
-                    var hexstring = "", string = "";
-                    if (val[3] == "大段优先") {
-                        hexstring = stream[offsetbase + offset] + " " + stream[offsetbase + offset + 1] + " " + stream[offsetbase + offset + 2] + " " + stream[offsetbase + offset + 3];
-                        string = parseInt(stream[offsetbase + offset] + stream[offsetbase + offset + 1] + stream[offsetbase + offset + 2] + stream[offsetbase + offset + 3], 16);
+                    if (headtype == 7) {
+                        scnt -= -8;
+                        writerow(attr, "-", "-");
                     }
-                    else {
-                        hexstring = stream[offsetbase + offset + 3] + " " + stream[offsetbase + offset + 2] + " " + stream[offsetbase + offset + 1] + " " + stream[offsetbase + offset];
-                        string = parseInt(stream[offsetbase + offset + 3] + stream[offsetbase + offset + 2] + stream[offsetbase + offset + 1] + stream[offsetbase + offset], 16);
-                    }
-                    writerow(attr, hexstring, string);
                 }
             }
             return;
@@ -254,7 +281,7 @@
 </head>
 <body>
     <p>
-        <label>请选择一个文件（建议上传正方形图片）：</label>
+        <label>请选择一个文件：</label>
         <input type="file" id="f_choose" accept="image/jpeg" />
         <input type="button" id="b_load" value="读取图像" onclick="readAsDataURL()" />
         <input type="button" id="b_binary" value="读取二进制数据" onclick="readAsBinaryString()" disabled="disabled" />
