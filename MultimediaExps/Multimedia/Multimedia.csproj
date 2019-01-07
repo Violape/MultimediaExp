@@ -70,6 +70,7 @@
     <Content Include="Exp1\Exp1.html" />
     <Content Include="Exp1\main.cpp" />
     <Content Include="Exp2\Exp2.html" />
+    <Content Include="Exp3\Exp3.html" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>

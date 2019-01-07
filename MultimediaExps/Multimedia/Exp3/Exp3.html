@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>EXIF Reading and Writing</title>
+    <style>
+        .binary {
+            margin: 10px;
+            padding: 5px;
+            align-content: center;
+            width: 40%;
+            display: block;
+            word-break: break-all;
+            word-wrap: break-word;
+            font: 16px consolas;
+            display: inline-block;
+            vertical-align: top;
+            border: 2px solid;
+        }
+        .title {
+            font: 20px 宋体;
+            padding-left: 10px;
+            padding-top: 5px;
+        }
+    </style>
+    <script type="text/javascript">
+        var result = document.getElementById("i_original");
+        var file = document.getElementById("f_choose");
+        var hexstream = "";
+        var stream = new Array();
+        var val = new Array();
+        if (typeof FileReader == 'undefined') {
+            result.InnerHTML = "<p>你的浏览器不支持FileReader接口！</p>";
+            file.setAttribute("disabled", "disabled");
+        }
+        function readAsDataURL() {
+            var file = document.getElementById("f_choose").files[0];
+            var reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (e) {
+                var result = document.getElementById("t_original");
+                result.innerHTML = '<img src="' + this.result + '" alt=""/>';
+                document.getElementById("b_binary").disabled = false;
+            }
+        }
+        function readAsBinaryString() {
+            var file = document.getElementById("f_choose").files[0];
+            var reader = new FileReader();
+            var endflag = 2;
+            reader.readAsBinaryString(file);
+            reader.onload = function (e) {
+                var string = reader.result.split("");
+                var hex = ""
+                for (var i = 0; i < string.length; i++) {
+                    var charhex = string[i].charCodeAt();
+                    var hexc = parseInt(charhex).toString(16);
+                    if (hexc.length == 1)
+                        hexc = "0" + hexc;
+                    hex = hex + hexc + " ";
+                    hexstream = hexstream + hexc + " ";
+                    if (i % 16 == 15)
+                        hex = hex + "<br/>";
+                    if (endflag == 2 && hexc == "ff")
+                        endflag = 1;
+                    else if (endflag == 1 && hexc == "db")
+                        endflag = 0;
+                    else
+                        endflag = 2;
+                    if (endflag == 0)
+                        break;
+                }
+                var result = document.getElementById("t_binary");
+                result.innerHTML = hex;
+                document.getElementById("b_analyze").disabled = false;
+            }
+        }
+        function analyzeHexCode() {
+
+        }
+        function writerow(attribute, stream, value) {
+            var tbody = document.getElementById('tb_info');
+            var row = document.createElement('tr');
+            var attr = document.createElement('td');
+            attr.innerHTML = attribute;
+            row.appendChild(attr);
+            var strm = document.createElement('td');
+            strm.innerHTML = stream;
+            row.appendChild(strm);
+            var val = document.createElement("td");
+            val.innerHTML = value;
+            row.appendChild(val);
+            tbody.appendChild(row);
+        }
+    </script>
+</head>
+<body>
+    <p>
+        <label>请选择一个文件（建议上传正方形图片）：</label>
+        <input type="file" id="f_choose" accept="image/jpeg" />
+        <input type="button" id="b_load" value="读取图像" onclick="readAsDataURL()" />
+        <input type="button" id="b_binary" value="读取二进制数据" onclick="readAsBinaryString()" disabled="disabled" />
+        <input type="button" id="b_analyze" value="解析数据" onclick="analyzeHexCode()" disabled="disabled" />
+    </p>
+    <div id="i_original" style="margin-left:10px; padding: 10px; width:82%; border:2px solid;">
+        <div id="t_showoriginal" class="title">原图展示</div><br />
+        <div id="t_original" align="center"></div>
+    </div>
+    <div id="i_binary" class="binary">
+        <div id="t_showbinary" class="title">十六进制编码</div>
+        <div id="t_binary" style="padding-left: 50px; padding-top:10px; padding-bottom:10px;"></div>
+    </div>
+    <div id="i_information" class="binary">
+        <div id="t_showinfo" class="title">图片信息</div>
+        <table border="1" cellspacing="0" style="font: 12px 微软雅黑; margin-left: 30px; margin-top:10px; margin-bottom:10px; margin-right:10px; width:90%;">
+            <tr>
+                <th>属性名</th>
+                <th>对应数据</th>
+                <th>属性值</th>
+            </tr>
+            <tbody id="tb_init">
+                <tr>
+                    <td colspan="3" align="center">尚未解析！</td>
+                </tr>
+            </tbody>
+            <tbody id="tb_info"></tbody>
+        </table>
+    </div>
+</body>
+</html>
