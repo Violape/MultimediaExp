@@ -75,7 +75,44 @@
             }
         }
         function analyzeHexCode() {
+            stream = hexstream.split(" ");
+            var tbody = document.getElementById('tb_init');
+            if (tbody != null)
+                tbody.remove();
+            var code = "";
+            code = stream[0] + " " + stream[1];
+            if (code == "ff d8")
+                val.push("JPEG")
+            else
+                return;
+            writerow("图像类型", code, val[0]);
+            code = stream[2] + " " + stream[3];
+            var scnt = 2;
+            while (code != "ff e1") {
+                scnt -= -2;
+                if (scnt > stream.length - 2) {
+                    var tbody = document.getElementById('tb_info');
+                    var row = document.createElement('tr');
+                    var attr = document.createElement('td');
+                    attr.colSpan = 3;
+                    attr.innerHTML = "无EXIF信息！";
+                    row.appendChild(attr);
+                    tbody.appendChild(row);
+                    return;
+                }
+                code = stream[scnt] + " " + stream[scnt + 1];
+            }
+            val.push("-");
+            writerow("EXIF文件头", code, val[1]);
+            while (1) {
+                scnt -= -2;
+                code = stream[scnt] + " " + stream[scnt + 1];
+                if (code == "ff db") {
+                    writerow("EXIF文件尾", code, "-");
+                    break;
+                }
 
+            }
         }
         function writerow(attribute, stream, value) {
             var tbody = document.getElementById('tb_info');
