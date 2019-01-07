@@ -87,9 +87,8 @@
                 return;
             writerow("图像类型", code, val[0]);
             code = stream[2] + " " + stream[3];
-            var scnt = 2;
+            var scnt = 4;
             while (code != "ff e1") {
-                scnt -= -2;
                 if (scnt > stream.length - 2) {
                     var tbody = document.getElementById('tb_info');
                     var row = document.createElement('tr');
@@ -101,17 +100,93 @@
                     return;
                 }
                 code = stream[scnt] + " " + stream[scnt + 1];
+                scnt -= -2;
             }
             val.push("-");
             writerow("EXIF文件头", code, val[1]);
+            code = stream[scnt] + " " + stream[scnt + 1];
+            val.push(parseInt(stream[scnt] + stream[scnt + 1], 16));
+            scnt -= -2;
+            writerow("EXIF文件长度", code, val[2]);
+            code = stream[scnt] + " " + stream[scnt + 1] + " " + stream[scnt + 2] + " " + stream[scnt + 3];
+            scnt -= -4;
+            if (code == "45 78 69 66")
+                writerow("EXIF ASCII码", code, "Exif");
+            else
+                return;
+            scnt -= -2; //跳过占位的"00 00"
+            var offsetbase = scnt;
+            code = stream[scnt] + " " + stream[scnt + 1];
+            scnt -= -2;
+            if (code == "4d 4d") {
+                val.push("大段优先");
+                writerow("存储模式", code, val[3]);
+            }
+            else if (code == "49 49") {
+                val.push("小段优先");
+                writerow("存储模式", code, val[3]);
+            }
+            else
+                return;
+            code = stream[scnt] + " " + stream[scnt + 1];
+            scnt -= -2;
+            if ((code == "00 2a" && val[3] == "大段优先") || (code == "2a 00" && val[3] == "小段优先"))
+                writerow("TIFF文件信息头", code, "-");
+            code = stream[scnt] + " " + stream[scnt + 1] + " " + stream[scnt + 2] + " " + stream[scnt + 3];
+            if (val[3] == "大段优先")
+                val.push(parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16));
+            else
+                val.push(parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16));
+            scnt -= -4;
+            writerow("IFD偏移量", code, val[4]);
+            var map = new Map(
+                [["01 0e","图像标题"],["01 3b","作者"],["82 98","版权"]]
+            );
+            scnt -= -2; //跳过文件头说明
             while (1) {
+                var mcode = stream[scnt] + " " + stream[scnt + 1];
+                var icode = stream[scnt + 1] + " " + stream[scnt];
+                if (val[3] == "大段优先")
+                    code = mcode;
+                else
+                    code = icode;
                 scnt -= -2;
-                code = stream[scnt] + " " + stream[scnt + 1];
-                if (code == "ff db") {
-                    writerow("EXIF文件尾", code, "-");
+                if (code == "00 00") {
+                    writerow("EXIF文件尾", "ff db", "-");
                     break;
                 }
-
+                scnt -= -2; //跳过文件长度为2的提示头
+                var attr = map.get(code);
+                var length;
+                if (val[3] == "大段优先")
+                    length = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                else
+                    length = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                scnt -= -4;
+                var offset;
+                if (val[3] == "大段优先")
+                    offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                else
+                    offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                scnt -= -4;
+                var string = "", hexstring = "";
+                var crlfflag = 0;
+                for (var i = 0; i < length; i++) {
+                    if (crlfflag == 1) {
+                        string += "; ";
+                        crlfflag = 0;
+                    }
+                    var curstring = stream[offsetbase + offset + i];
+                    if (curstring != "00")
+                        string += String.fromCharCode(parseInt(curstring, 16));
+                    else
+                        crlfflag = 1;
+                    if (hexstring.length == 18)
+                        hexstring += "...";
+                    if (hexstring.length < 21)
+                        hexstring += curstring + " ";
+                }
+                writerow(attr, hexstring, string);
             }
         }
         function writerow(attribute, stream, value) {
