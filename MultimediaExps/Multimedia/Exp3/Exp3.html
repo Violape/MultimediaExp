@@ -140,10 +140,19 @@
             scnt -= -4;
             writerow("IFD偏移量", code, val[4]);
             var map = new Map(
-                [["01 0e","图像标题"],["01 3b","作者"],["82 98","版权"]]
+                [["01 0e", "图像标题"], ["01 0f", "厂商"], ["01 10", "机型"], ["01 12", "方向"],
+                    ["01 1a", "水平分辨率"], ["01 1b", "垂直分辨率"], ["01 28", "分辨率单位"], ["01 31", "软件"],
+                    ["01 32", "修改时间"], ["02 13", "YCbCr定位"], ["82 98", "版权"],
+                    ["87 69", "EXIF偏移量"], ["C4 A5", "PrintIM数据"]]
             );
-            scnt -= -2; //跳过文件头说明
-            while (1) {
+            var tagno;
+            if (val[3] == "大段优先")
+                tagno = parseInt(stream[scnt] + stream[scnt + 1], 16);
+            else
+                tagno = parseInt(stream[scnt + 1] + stream[scnt], 16);
+            scnt -= -2;
+            for (var i = 0; i < tagno; i++) {
+                //获取数据类型
                 var mcode = stream[scnt] + " " + stream[scnt + 1];
                 var icode = stream[scnt + 1] + " " + stream[scnt];
                 if (val[3] == "大段优先")
@@ -151,43 +160,81 @@
                 else
                     code = icode;
                 scnt -= -2;
-                if (code == "00 00") {
-                    writerow("EXIF文件尾", "ff db", "-");
-                    break;
-                }
-                scnt -= -2; //跳过文件长度为2的提示头
                 var attr = map.get(code);
-                var length;
+                //获取数据格式
+                var headtype = "";
                 if (val[3] == "大段优先")
-                    length = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                    headtype = parseInt(stream[scnt] + stream[scnt + 1], 16);
                 else
-                    length = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
-                scnt -= -4;
-                var offset;
-                if (val[3] == "大段优先")
-                    offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
-                else
-                    offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
-                scnt -= -4;
-                var string = "", hexstring = "";
-                var crlfflag = 0;
-                for (var i = 0; i < length; i++) {
-                    if (crlfflag == 1) {
-                        string += "; ";
-                        crlfflag = 0;
-                    }
-                    var curstring = stream[offsetbase + offset + i];
-                    if (curstring != "00")
-                        string += String.fromCharCode(parseInt(curstring, 16));
+                    headtype = parseInt(stream[scnt + 1] + stream[scnt], 16);
+                scnt -= -2;
+                if (headtype == 2) { //ASCII码格式
+                    var length;
+                    if (val[3] == "大段优先")
+                        length = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
                     else
-                        crlfflag = 1;
-                    if (hexstring.length == 18)
-                        hexstring += "...";
-                    if (hexstring.length < 21)
-                        hexstring += curstring + " ";
+                        length = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                    scnt -= -4;
+                    var offset;
+                    if (val[3] == "大段优先")
+                        offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                    else
+                        offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                    scnt -= -4;
+                    var string = "", hexstring = "";
+                    var crlfflag = 0;
+                    for (var j = 0; j < length; j++) {
+                        if (crlfflag == 1) {
+                            string += "; ";
+                            crlfflag = 0;
+                        }
+                        var curstring = stream[offsetbase + offset + j];
+                        if (curstring != "00")
+                            string += String.fromCharCode(parseInt(curstring, 16));
+                        else
+                            crlfflag = 1;
+                        if (hexstring.length == 18)
+                            hexstring += "...";
+                        if (hexstring.length < 21)
+                            hexstring += curstring + " ";
+                    }
+                    writerow(attr, hexstring, string);
                 }
-                writerow(attr, hexstring, string);
+                if (headtype == 3 || headtype == 4) { // 数值格式（Short或者Long）
+                    scnt -= -4; //跳过1的长度提示
+                    var hexstring = "", string = "";
+                    if (val[3] == "大段优先") {
+                        hexstring = stream[scnt] + " " + stream[scnt + 1] + " " + stream[scnt + 2] + " " + stream[scnt + 3];
+                        string = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                    }
+                    else {
+                        hexstring = stream[scnt + 3] + " " + stream[scnt + 2] + " " + stream[scnt + 1] + " " + stream[scnt];
+                        string = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                    }
+                    scnt -= -4;
+                    writerow(attr, hexstring, string);
+                }
+                if (headtype == 5) { //Rational格式
+                    scnt -= -4; //跳过1的长度提示
+                    var offset;
+                    if (val[3] == "大段优先")
+                        offset = parseInt(stream[scnt] + stream[scnt + 1] + stream[scnt + 2] + stream[scnt + 3], 16);
+                    else
+                        offset = parseInt(stream[scnt + 3] + stream[scnt + 2] + stream[scnt + 1] + stream[scnt], 16);
+                    scnt -= -4;
+                    var hexstring = "", string = "";
+                    if (val[3] == "大段优先") {
+                        hexstring = stream[offsetbase + offset] + " " + stream[offsetbase + offset + 1] + " " + stream[offsetbase + offset + 2] + " " + stream[offsetbase + offset + 3];
+                        string = parseInt(stream[offsetbase + offset] + stream[offsetbase + offset + 1] + stream[offsetbase + offset + 2] + stream[offsetbase + offset + 3], 16);
+                    }
+                    else {
+                        hexstring = stream[offsetbase + offset + 3] + " " + stream[offsetbase + offset + 2] + " " + stream[offsetbase + offset + 1] + " " + stream[offsetbase + offset];
+                        string = parseInt(stream[offsetbase + offset + 3] + stream[offsetbase + offset + 2] + stream[offsetbase + offset + 1] + stream[offsetbase + offset], 16);
+                    }
+                    writerow(attr, hexstring, string);
+                }
             }
+            return;
         }
         function writerow(attribute, stream, value) {
             var tbody = document.getElementById('tb_info');
